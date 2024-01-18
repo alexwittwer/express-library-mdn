@@ -3,41 +3,26 @@ const express = require("express");
 const path = require("path");
 const cookieParser = require("cookie-parser");
 const logger = require("morgan");
+require("dotenv").config();
+
+const catalogRouter = require("./routes/catalog");
 const indexRouter = require("./routes/index");
 const usersRouter = require("./routes/users");
 
 const mongoose = require("mongoose");
-
+mongoose.set("strictQuery", false);
 const mongoDB = process.env.MONGODB_URI;
 
-mongoose.set("strictQuery", false);
-
 try {
+  console.log("Attempting to connect to MongoDB...");
   main();
 } catch (err) {
+  console.log("An error occured");
   console.log(err);
 }
 async function main() {
   await mongoose.connect(mongoDB);
-  console.log("Connection to MongoDB successful");
-  const Schema = mongoose.Schema;
-
-  const schema = new Schema({
-    name: String,
-    age: Number,
-    sport: String,
-  });
-
-  // Compile model from schema
-  const Athlete = mongoose.model("Athlete", schema);
-
-  // find all athletes who play tennis, returning the 'name' and 'age' fields
-  const tennisPlayers = await Athlete.find(
-    { sport: "Tennis" },
-    "name age"
-  ).exec();
-
-  console.log(tennisPlayers);
+  console.log("Connection to MongoDB was successful");
 }
 
 const app = express();
@@ -54,6 +39,7 @@ app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/", indexRouter);
 app.use("/users", usersRouter);
+app.use("/catalog", catalogRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
